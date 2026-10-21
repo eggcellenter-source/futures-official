@@ -1,0 +1,13 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>官方資料與更新 · 結算分析平台</title><link rel="stylesheet" href="assets/platform.css"></head>
+<body class="manage"><nav><a href="index.html">🧭 總覽</a><a href="board.html">📊 溢價看板</a><a href="pcr.html">🎯 PCR訊號</a><a href="oi.html">🧱 未平倉分布</a><a href="inst.html">🏦 法人OP</a></nav>
+<main><h1>官方資料與更新</h1><p>由期交所、證交所與櫃買中心直接取得資料。使用 GitHub Pages 免費託管，GitHub Actions 定時更新；不需信用卡或讓電腦保持開機。</p>
+<section class="panel"><h2>更新狀態</h2><div id="summary">正在取得雲端紀錄…</div><p id="schedule"></p>
+<div class="actions"><a id="workflow" hidden target="_blank" rel="noopener">前往 GitHub 執行更新</a><button id="reload">重新讀取狀態</button><button id="export">下載五頁資料備份</button></div><p id="message" role="status" aria-live="polite"></p></section>
+<section class="panel"><h2>官方來源</h2><div class="table-scroll"><table><thead><tr><th>機構</th><th>資料</th><th>資料日期</th></tr></thead><tbody id="sources"></tbody></table></div></section>
+<section class="panel"><h2>歷史資料與計算範圍</h2><p id="coverage"></p><p id="missing"></p>
+<p>股期溢價以結算週期內的「期貨結算價 − 現貨收盤價」÷ 現貨收盤價，每日等權平均。大型、小型及 ETF 標準契約按官方乘數合計市值；調整型契約不混入排名。未額外還原除權息，因此除權息附近仍需留意比較基準。</p>
+<p>融券增減使用前次結算日餘額作基準；未公告或缺少紀錄顯示「—」。選擇權到期日直接使用期交所欄位，包含休市調整。PCR 回測只計入同時有前一交易日 PCR 與當日 OHLC 的實際到期日；無樣本區間不顯示勝率。</p>
+<p>法人方向分數為外資與投信的 (買 Call − 買 Put) + 0.5 × (賣 Put − 賣 Call)，以最多 120 個已保存交易日計算 z 分數；未滿 20 日顯示資料累積中。z≤−1.5／−0.5／0.5／1.5 為五個等級界線。</p>
+<p>更新失敗時保留最近成功版本，最多重試三次；休市不寫入空資料。這是盤後資料，不是即時報價。</p></section>
+<section class="panel"><h2>手動更新與補資料</h2><p>網站擁有者可在 GitHub Actions 開啟「Official daily data and Pages」，按 Run workflow；date 留空更新最新資料，輸入 YYYY-MM-DD 可補指定交易日。訪客不能修改資料。</p><p>排程可能延遲；公開儲存庫連續 60 日沒有活動時，GitHub 可能停用排程。請由工作紀錄確認實際執行情況。資料來源失敗時保留上一版。</p></section>
+<p><small>獨立資料管線 · 介面延續原先版型 · 不讀取原站內容或資料</small></p></main><script type="module" src="assets/official-manage.mjs"></script></body></html>

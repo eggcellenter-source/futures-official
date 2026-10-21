@@ -1,0 +1,188 @@
+<title>期權都齊全</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<style>
+  :root{
+    --bg:#faf8f3; --surface:#ffffff; --head:#f0ebe0; --stripe:#f5f1e8;
+    --ink:#1b1a16; --ink-soft:#69645a; --ink-faint:#9c9583; --line:#e6e0d2; --line-soft:#efe9dd;
+    --up:#0f8a4c; --up-bg:rgba(15,138,76,.12); --down:#c0392b; --down-bg:rgba(192,57,43,.12);
+    --amber:#b8860b; --amber-bg:rgba(184,134,11,.12);
+    --accent:#2a5da0; --accent-bg:rgba(42,93,160,.10); --rest-bg:#eceadf;
+    color-scheme:light;
+  }
+  :root:not([data-theme="light"]){ @media (prefers-color-scheme:dark){
+    --bg:#131209; --surface:#1b1910; --head:#252115; --stripe:#211e14;
+    --ink:#f0ede3; --ink-soft:#a69e8c; --ink-faint:#726a5a; --line:#302b20; --line-soft:#28241a;
+    --up:#3cc879; --up-bg:rgba(60,200,121,.14); --down:#ff6a5f; --down-bg:rgba(255,106,95,.14);
+    --amber:#d9a444; --amber-bg:rgba(217,164,68,.15);
+    --accent:#78ade6; --accent-bg:rgba(120,173,230,.14); --rest-bg:#242116;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#131209; --surface:#1b1910; --head:#252115; --stripe:#211e14;
+    --ink:#f0ede3; --ink-soft:#a69e8c; --ink-faint:#726a5a; --line:#302b20; --line-soft:#28241a;
+    --up:#3cc879; --up-bg:rgba(60,200,121,.14); --down:#ff6a5f; --down-bg:rgba(255,106,95,.14);
+    --amber:#d9a444; --amber-bg:rgba(217,164,68,.15);
+    --accent:#78ade6; --accent-bg:rgba(120,173,230,.14); --rest-bg:#242116;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.5;
+    font-family:"Noto Sans TC",system-ui,"Microsoft JhengHei",sans-serif;-webkit-font-smoothing:antialiased}
+  .num{font-family:"JetBrains Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:760px;margin:0 auto;padding:0 16px 56px}
+  .hd{text-align:center;padding:34px 0 8px}
+  .hd h1{margin:0;font-size:26px;font-weight:900;letter-spacing:.5px}
+  .hd h1 b{color:var(--accent)}
+  .hd p{margin:8px 0 0;font-size:14px;color:var(--ink-soft)}
+  .themebtn{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:9px;
+    border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+
+  .cards{display:grid;gap:16px;margin-top:24px}
+  .tool{display:block;text-decoration:none;color:inherit;background:var(--surface);
+    border:1px solid var(--line);border-radius:16px;padding:20px 22px;
+    box-shadow:0 4px 16px rgba(30,26,18,.05);transition:transform .12s,border-color .12s,box-shadow .12s}
+  .tool:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 10px 28px rgba(30,26,18,.10)}
+  .tool .topline{display:flex;align-items:center;gap:12px}
+  .tool .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;flex:none}
+  .t1 .ic{background:var(--down-bg)} .t2 .ic{background:var(--accent-bg)} .t3 .ic{background:var(--up-bg)} .t4 .ic{background:var(--amber-bg)}
+  .tool h2{margin:0;font-size:19px;font-weight:800}
+  .tool .desc{font-size:13px;color:var(--ink-soft);margin:3px 0 0}
+  .go{margin-left:auto;font-size:13px;font-weight:700;color:var(--accent);white-space:nowrap}
+
+  .snap{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:inline-flex;align-items:baseline;gap:5px;padding:6px 12px;border-radius:999px;
+    background:var(--stripe);border:1px solid var(--line);font-size:12.5px;color:var(--ink-soft)}
+  .chip b{font-weight:800;font-size:14px}
+  .chip.num-hi b{color:var(--down)} .chip.num-lo b{color:var(--up)}
+  .chip.up{background:var(--up-bg);border-color:transparent} .chip.up b{color:var(--up)}
+  .chip.down{background:var(--down-bg);border-color:transparent} .chip.down b{color:var(--down)}
+  .chip.amber{background:var(--amber-bg);border-color:transparent} .chip.amber b{color:var(--amber)}
+  .chip.rest{background:var(--rest-bg);border-color:transparent}
+
+  .feat{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px 14px}
+  .feat span{font-size:12px;color:var(--ink-faint)}
+  .feat span::before{content:"•";margin-right:5px;color:var(--accent)}
+
+  .foot{margin-top:26px;font-size:12px;color:var(--ink-soft);line-height:1.8;text-align:center}
+  .foot code{background:var(--head);padding:1px 6px;border-radius:5px;font-family:"JetBrains Mono",monospace;font-size:11px}
+</style>
+
+<style>
+  .sitenav{display:flex;gap:4px;align-items:center;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 12px;overflow-x:auto}
+  .sitenav a{flex:none;text-decoration:none;color:var(--ink-soft);font-size:13px;font-weight:600;padding:6px 12px;border-radius:8px;white-space:nowrap}
+  .sitenav a:hover{background:var(--stripe);color:var(--ink)}
+  .sitenav a.active{background:var(--accent-bg);color:var(--accent)}
+  :root[data-theme="dark"]{color-scheme:dark}
+  @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}}
+  .sitenav .navtheme{margin-left:auto;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;flex:none}
+</style>
+<nav class="sitenav">
+  <a href="index.html" class="active">🧭 總覽</a>
+  <a href="board.html">📊 溢價看板</a>
+  <a href="pcr.html">🎯 PCR訊號</a>
+  <a href="oi.html">🧱 未平倉分布</a>
+  <a href="inst.html">🏦 法人OP</a>
+  <button class="navtheme" id="theme" title="深淺色">◐</button>
+</nav>
+<div class="wrap">
+  <div class="hd">
+    <h1>期<b>權</b>都齊全</h1>
+    <p>結算週期套利 · 部位面彈藥雷達</p>
+  </div>
+  <div class="cards" id="cards"></div>
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+const D = null;
+
+function chips(list){ return list.map(c=>`<span class="chip ${c.cls||''}">${c.k}<b class="num">${c.v}</b>${c.u||''}</span>`).join(''); }
+
+const b=D.board, p=D.pcr, o=D.oi||{};
+const gateCls = b.gate==='rest'?'rest':'amber';
+const sellCls = b.sell>=350?'up':'rest';
+const sqzCls  = b.sqz>=3500?'down':'rest';
+const pcrUp = p.signal==='not_fall';   // 偏不跌=利多=紅、偏不漲=利空=綠
+const i=D.inst||{};
+const instCls = (i.level||'').includes('多')?'down':((i.level||'').includes('空')?'up':'rest');  // 偏多=紅(down)、偏空=綠(up)
+
+document.getElementById('cards').innerHTML = `
+  <a class="tool t1" href="board.html">
+    <div class="topline">
+      <div class="ic">📊</div>
+      <div><h2>結算週期溢價看板</h2><div class="desc">個股股期折溢價套利 · 賣壓 / 買盤 / 軋空</div></div>
+      <span class="go">開啟 →</span>
+    </div>
+    <div class="snap">
+      ${chips([
+        {k:'近月',v:b.near_month},
+        {k:'賣壓強度',v:b.sell.toLocaleString(),cls:sellCls},
+        {k:'軋空強度',v:b.sqz.toLocaleString(),cls:sqzCls},
+        {k:'台積電',v:(b.tsmc==null?'—':(b.tsmc>0?'+':'')+b.tsmc+'%'),cls:gateCls},
+      ])}
+    </div>
+    <div class="feat"><span>週期溢價×未平倉</span><span>賣壓/買盤風險 TOP</span><span>融券軋空</span><span>多結算月切換</span></div>
+  </a>
+
+  <a class="tool t2" href="pcr.html">
+    <div class="topline">
+      <div class="ic">🎯</div>
+      <div><h2>選擇權結算 PCR 訊號</h2><div class="desc">台指選結算日 · 未平倉 PCR × K棒</div></div>
+      <span class="go">開啟 →</span>
+    </div>
+    <div class="snap">
+      ${chips([
+        {k:'最新PCR',v:p.latest_pcr,cls:pcrUp?'down':'up'},
+        {k:'訊號',v:pcrUp?'偏不跌 ▲':'偏不漲 ▼',cls:pcrUp?'down':'up'},
+        {k:'下次結算',v:(p.next?p.next.date+' '+p.next.kind:'—')},
+      ])}
+    </div>
+    <div class="feat"><span>分水嶺 PCR≈100</span><span>週三選不跌86-88%</span><span>近期結算表</span></div>
+  </a>
+
+  <a class="tool t3" href="oi.html">
+    <div class="topline">
+      <div class="ic">🧱</div>
+      <div><h2>選擇權未平倉分布</h2><div class="desc">台指選各履約價未平倉 · 每500點 · 大戶共識</div></div>
+      <span class="go">開啟 →</span>
+    </div>
+    <div class="snap">
+      ${chips([
+        {k:'現價',v:o.spot?o.spot.toLocaleString():'—'},
+        {k:'支撐',v:o.support?o.support.toLocaleString():'—',cls:'up'},
+        {k:'壓力',v:o.resistance?o.resistance.toLocaleString():'—',cls:'down'},
+        {k:'最大痛點',v:o.maxpain?o.maxpain.toLocaleString():'—'},
+      ])}
+    </div>
+    <div class="feat"><span>${(o.expiry||'')+' '+(o.type||'')}</span><span>Put支撐 / Call壓力</span><span>每500點數據</span></div>
+  </a>
+
+  <a class="tool t4" href="inst.html">
+    <div class="topline">
+      <div class="ic">🏦</div>
+      <div><h2>三大法人選擇權未平倉</h2><div class="desc">自營 / 投信 / 外資 · 買賣權持倉方向</div></div>
+      <span class="go">開啟 →</span>
+    </div>
+    <div class="snap">
+      ${chips([
+        {k:'外資+投信',v:(i.level||'—'),cls:instCls},
+        {k:'近'+(i.win_n||'—')+'日',v:(i.pct!=null?'第'+i.pct+'百分位':'—'),cls:instCls},
+        {k:'資料日',v:(i.date||'—')},
+      ])}
+    </div>
+    <div class="feat"><span>三法人買賣權 OI</span><span>偏多偏空方向</span><span>每日增減</span></div>
+  </a>`;
+
+document.getElementById('foot').innerHTML =
+  `兩個工具的資料都在 <code>台股資料夾\\期貨結算\\</code>。快照更新於 ${D.updated}(點入各頁看最新)。`;
+
+const tb=document.getElementById('theme');
+try{const t=localStorage.getItem('hub-theme'); if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}
+tb.addEventListener('click',()=>{
+  const cur=document.documentElement.getAttribute('data-theme');
+  const dark=cur?cur==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+  const nx=dark?'light':'dark'; document.documentElement.setAttribute('data-theme',nx);
+  try{localStorage.setItem('hub-theme',nx);}catch(e){}
+});
+</script>

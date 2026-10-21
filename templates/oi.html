@@ -1,0 +1,266 @@
+<title>選擇權未平倉分布 · 期權都齊全</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;800&display=swap">
+<style>
+  :root{
+    --bg:#faf8f3; --surface:#ffffff; --stripe:#f5f1e8; --head:#f0ebe0;
+    --ink:#1b1a16; --ink-soft:#69645a; --ink-faint:#9c9583; --line:#e6e0d2; --line-soft:#efe9dd;
+    --call:#c0392b; --call-bg:rgba(192,57,43,.14); --put:#0f8a4c; --put-bg:rgba(15,138,76,.14);
+    --accent:#2a5da0; --accent-bg:rgba(42,93,160,.10); --rest-bg:#eceadf; --spot:#2a5da0;
+    color-scheme:light;
+  }
+  :root:not([data-theme="light"]){ @media (prefers-color-scheme:dark){
+    --bg:#131209; --surface:#1b1910; --stripe:#211e14; --head:#252115;
+    --ink:#f0ede3; --ink-soft:#a69e8c; --ink-faint:#726a5a; --line:#302b20; --line-soft:#28241a;
+    --call:#ff6a5f; --call-bg:rgba(255,106,95,.16); --put:#3cc879; --put-bg:rgba(60,200,121,.16);
+    --accent:#78ade6; --accent-bg:rgba(120,173,230,.14); --rest-bg:#242116; --spot:#78ade6;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#131209; --surface:#1b1910; --stripe:#211e14; --head:#252115;
+    --ink:#f0ede3; --ink-soft:#a69e8c; --ink-faint:#726a5a; --line:#302b20; --line-soft:#28241a;
+    --call:#ff6a5f; --call-bg:rgba(255,106,95,.16); --put:#3cc879; --put-bg:rgba(60,200,121,.16);
+    --accent:#78ade6; --accent-bg:rgba(120,173,230,.14); --rest-bg:#242116; --spot:#78ade6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.5;
+    font-family:"Noto Sans TC",system-ui,"Microsoft JhengHei",sans-serif;-webkit-font-smoothing:antialiased}
+  .num{font-family:"JetBrains Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:820px;margin:0 auto;padding-inline:16px;padding-block:0 56px}
+  .sitenav{display:flex;gap:4px;align-items:center;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 12px;overflow-x:auto}
+  .sitenav a{flex:none;text-decoration:none;color:var(--ink-soft);font-size:13px;font-weight:600;padding:6px 12px;border-radius:8px;white-space:nowrap}
+  .sitenav a:hover{background:var(--stripe);color:var(--ink)}
+  .sitenav a.active{background:var(--accent-bg);color:var(--accent)}
+  .sitenav .navtheme{margin-left:auto;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;flex:none}
+  [data-tip]{cursor:help}
+  .ttpop{position:fixed;max-width:300px;background:var(--ink);color:var(--bg);padding:8px 11px;border-radius:8px;font-size:12px;line-height:1.55;z-index:200;pointer-events:none;box-shadow:0 8px 26px rgba(0,0,0,.28)}
+
+  header.top{border-bottom:1px solid var(--line);background:var(--surface)}
+  .top-in{max-width:820px;margin:0 auto;padding:14px 16px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .logo{font-weight:900;font-size:19px;letter-spacing:.3px} .logo b{color:var(--accent)}
+  .tag{font-size:12.5px;color:var(--ink-soft)}
+
+  .ctrl{display:flex;align-items:center;gap:8px;margin-top:18px;flex-wrap:wrap}
+  .ctrl select{padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+  .ctrl .du{font-size:12px;color:var(--ink-faint)}
+
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:16px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 14px}
+  .stat .k{font-size:11.5px;color:var(--ink-soft);font-weight:600}
+  .stat .v{font-size:19px;font-weight:800;margin-top:2px}
+  .stat .v small{font-size:11px;color:var(--ink-faint);font-weight:600}
+  .stat.call .v{color:var(--call)} .stat.put .v{color:var(--put)} .stat.spot .v{color:var(--spot)}
+
+  h2.sec{font-size:16px;font-weight:800;margin:28px 0 4px}
+  .hint{font-size:12.5px;color:var(--ink-faint);margin:0 0 10px}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--ink-soft);margin:2px 0 12px;flex-wrap:wrap}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:11px;height:11px;border-radius:3px}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  /* 分布圖 */
+  #profile{display:flex;flex-direction:column;gap:6px}
+  .prow{display:grid;grid-template-columns:1fr 62px 1fr;align-items:center;gap:8px;height:30px}
+  .prow.spot{background:var(--accent-bg);border-radius:5px}
+  .pbar{height:20px;display:flex;align-items:center}
+  .pbar.call{justify-content:flex-end}
+  .pbar .b{height:20px;border-radius:3px}
+  .pbar.put .b{background:var(--put)} .pbar.call .b{background:var(--call)}
+  .pbar .n{font-size:10px;color:var(--ink-soft);margin:0 4px;white-space:nowrap}
+  .strike{text-align:center;font-size:12px;font-weight:700;font-family:"JetBrains Mono",monospace}
+  .prow.sup .strike{color:var(--put)} .prow.res .strike{color:var(--call)}
+  .strike .tagm{display:block;font-size:9px;font-weight:600}
+  .prow.sup .tagm{color:var(--put)} .prow.res .tagm{color:var(--call)}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{background:var(--head);color:var(--ink-soft);font-size:11.5px;font-weight:700;text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  thead th.l{text-align:center}
+  tbody td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+  tbody tr:nth-child(even) td{background:var(--stripe)}
+  td.l{text-align:center;font-weight:700}
+  .cc{color:var(--call)} .pp{color:var(--put)}
+  tr.spotrow td{background:var(--accent-bg)!important}
+  .foot{margin-top:22px;font-size:12px;color:var(--ink-soft);line-height:1.75}
+  .foot b{color:var(--ink)} .foot code{background:var(--head);padding:1px 6px;border-radius:5px;font-family:"JetBrains Mono",monospace;font-size:11px}
+
+  /* 新倉焦點 */
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:520px){.fgrid{grid-template-columns:1fr}}
+  .fitem{border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .fitem.call{background:var(--call-bg)} .fitem.put{background:var(--put-bg)}
+  .fk{font-size:11.5px;color:var(--ink-soft);font-weight:700}
+  .fv{font-size:21px;font-weight:800;font-family:"JetBrains Mono",monospace;margin-top:3px}
+  .fitem.call .fv{color:var(--call)} .fitem.put .fv{color:var(--put)}
+  .fv .fd{font-size:13px;font-weight:700}
+  .fsub{font-size:11px;color:var(--ink-faint);margin-top:4px}
+  .ftop{font-size:11px;color:var(--ink-soft);margin-top:6px;font-family:"JetBrains Mono",monospace;line-height:1.6}
+  .fdir{margin-top:11px;font-size:13px;padding:9px 13px;border-radius:10px;background:var(--rest-bg)}
+  .fdir.up{background:var(--call-bg);color:var(--call)}
+  .fdir.down{background:var(--put-bg);color:var(--put)}
+  .fdir b{font-weight:800} .fdir .fnote{font-weight:500;color:var(--ink-faint);font-size:11px;margin-left:5px}
+  /* Δ 欄位 */
+  .dcell{font-weight:700} .dec{color:var(--ink-faint);font-weight:500}
+</style>
+
+<nav class="sitenav">
+  <a href="index.html">🧭 總覽</a>
+  <a href="board.html">📊 溢價看板</a>
+  <a href="pcr.html">🎯 PCR訊號</a>
+  <a href="oi.html" class="active">🧱 未平倉分布</a>
+  <a href="inst.html">🏦 法人OP</a>
+  <button class="navtheme" id="theme" title="深淺色">◐</button>
+</nav>
+
+<header class="top">
+  <div class="top-in">
+    <span class="logo">選擇權<b>未平倉</b>分布</span>
+    <span class="tag">台指選 各履約價未平倉 · 每500點 · 大戶共識</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="ctrl">
+    <span style="font-size:13px;color:var(--ink-soft)">到期</span>
+    <select id="exp-select"></select>
+    <span class="du" id="du"></span>
+  </div>
+  <div class="summary" id="summary"></div>
+
+  <h2 class="sec">新倉焦點(未平倉增減)</h2>
+  <p class="hint" id="focus-hint"></p>
+  <div class="card focus" id="focus"></div>
+
+  <h2 class="sec">未平倉分布(每500點)</h2>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--call)"></span>Call(上方壓力)</span>
+    <span><span class="dot" style="background:var(--put)"></span>Put(下方支撐)</span>
+    <span><span class="dot" style="background:var(--accent)"></span>現價所在格</span>
+  </div>
+  <div class="card" id="profile"></div>
+
+  <h2 class="sec">每500點數據</h2>
+  <p class="hint" id="tbl-hint"></p>
+  <div class="card" style="padding:0;overflow-x:auto"><table>
+    <thead><tr><th class="l">履約價區間</th><th>Call口</th><th>ΔCall</th><th>Call%</th><th>Put口</th><th>ΔPut</th><th>Put%</th></tr></thead>
+    <tbody id="tbl-body"></tbody>
+  </table></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+<div id="tt" class="ttpop" hidden></div>
+
+<script>
+const DATA = null;
+const M = DATA.meta, EXPS = DATA.expiries;
+const comma = n => Number(n).toLocaleString('en-US');
+const dfmt = x => !x ? '' : (x>0?'+':'−')+comma(Math.abs(x));
+let cur = null;
+
+// ---- 到期下拉 ----
+const sel = document.getElementById('exp-select');
+EXPS.forEach((e,i)=>{ const o=document.createElement('option'); o.value=i;
+  o.textContent = `${e.expiry||e.code} ${e.type}` + (e.days_to!=null?`（剩${e.days_to}天）`:''); sel.appendChild(o); });
+let defIdx = EXPS.findIndex(e=>e.days_to!=null && e.days_to>=1); if(defIdx<0) defIdx=0;
+sel.selectedIndex = defIdx;
+sel.addEventListener('change',()=>render(+sel.value));
+
+function render(idx){
+  cur = EXPS[idx];
+  const e = cur;
+  document.getElementById('du').textContent = `資料日 ${M.data_date}`;
+  // summary
+  const pc = e.total_c? (e.total_p/e.total_c) : 0;
+  document.getElementById('summary').innerHTML = `
+    <div class="stat spot"><div class="k">現價(加權指數)</div><div class="v num">${M.spot?comma(M.spot):'—'}</div></div>
+    <div class="stat"><div class="k">到期日</div><div class="v num" style="font-size:16px">${e.expiry||'—'}</div></div>
+    <div class="stat put"><div class="k">支撐(Put最大)</div><div class="v num">${comma(e.put_max.strike)}<small> ${comma(e.put_max.oi)}口</small></div></div>
+    <div class="stat call"><div class="k">壓力(Call最大)</div><div class="v num">${comma(e.call_max.strike)}<small> ${comma(e.call_max.oi)}口</small></div></div>
+    <div class="stat"><div class="k">最大痛點</div><div class="v num">${comma(e.maxpain)}</div></div>
+    <div class="stat"><div class="k">單邊總口(Call/Put)</div><div class="v num" style="font-size:15px"><span class="cc">${comma(e.total_c)}</span>/<span class="pp">${comma(e.total_p)}</span></div></div>
+    <div class="stat"><div class="k">P/C 比</div><div class="v num">${(pc*100).toFixed(0)}%</div></div>`;
+
+  // 新倉焦點(未平倉增減 vs 前一交易日)
+  const cu=e.call_up, pu=e.put_up, dtc=e.d_total_c||0, dtp=e.d_total_p||0;
+  document.getElementById('focus-hint').textContent = M.prev_date
+    ? `本日各履約價未平倉 相對前一交易日(${M.prev_date})的增減。增倉集中處 ≈ 大戶(多為賣方)新防守位置。`
+    : `尚無前一交易日資料可比較。`;
+  const topList = arr => (arr&&arr.length>1) ? '其他:'+arr.slice(1,4).map(t=>`${comma(t.strike)} +${comma(t.d)}`).join(' · ') : '';
+  const net = dtp - dtc, tot = Math.abs(dtc)+Math.abs(dtp), ratio = tot? net/tot : 0;
+  let dir='中性(增倉分歧)', dcls='';
+  if(ratio>0.15){ dir='偏多 — 支撐(Put)增倉為主'; dcls='up'; }
+  else if(ratio<-0.15){ dir='偏空 — 壓力(Call)增倉為主'; dcls='down'; }
+  document.getElementById('focus').innerHTML = `
+    <div class="fgrid">
+      <div class="fitem call">
+        <div class="fk">Call 新倉最多 → 上方壓力</div>
+        <div class="fv">${cu?comma(cu.strike):'—'} <span class="fd">${cu?'+'+comma(cu.d)+'口':''}</span></div>
+        <div class="fsub">當日 Call 淨增 <b class="num">${dfmt(dtc)||'0'}</b> 口</div>
+        <div class="ftop">${topList(e.top_c)}</div>
+      </div>
+      <div class="fitem put">
+        <div class="fk">Put 新倉最多 → 下方支撐</div>
+        <div class="fv">${pu?comma(pu.strike):'—'} <span class="fd">${pu?'+'+comma(pu.d)+'口':''}</span></div>
+        <div class="fsub">當日 Put 淨增 <b class="num">${dfmt(dtp)||'0'}</b> 口</div>
+        <div class="ftop">${topList(e.top_p)}</div>
+      </div>
+    </div>
+    <div class="fdir ${dcls}">推估賣方方向:<b>${dir}</b><span class="fnote">(ΔPut ${dfmt(dtp)||'0'} − ΔCall ${dfmt(dtc)||'0'} = ${dfmt(net)||'0'})</span></div>`;
+
+  // 分布圖(高履約價在上)
+  const bk = e.buckets.slice().sort((a,b)=>b.lo-a.lo);
+  const maxOI = Math.max(1, ...e.buckets.map(x=>Math.max(x.c,x.p)));
+  const spotBucket = M.spot!=null ? Math.floor(M.spot/M.bucket)*M.bucket : null;
+  document.getElementById('profile').innerHTML = bk.map(b=>{
+    const isSup = b.lo===Math.floor(e.put_max.strike/M.bucket)*M.bucket;
+    const isRes = b.lo===Math.floor(e.call_max.strike/M.bucket)*M.bucket;
+    const isSpot = b.lo===spotBucket;
+    const cls=['prow', isSpot?'spot':'', isSup?'sup':'', isRes?'res':''].filter(Boolean).join(' ');
+    const cw=(b.c/maxOI*100), pw=(b.p/maxOI*100);
+    return `<div class="${cls}">
+      <div class="pbar call">${b.c?`<span class="n">${comma(b.c)}</span>`:''}<div class="b" style="width:${cw}%"></div></div>
+      <div class="strike">${b.lo/1000}k${isSup?'<span class="tagm">支撐</span>':isRes?'<span class="tagm">壓力</span>':isSpot?'<span class="tagm" style="color:var(--accent)">現價</span>':''}</div>
+      <div class="pbar put"><div class="b" style="width:${pw}%"></div>${b.p?`<span class="n">${comma(b.p)}</span>`:''}</div>
+    </div>`;
+  }).join('');
+
+  // 數據表(高→低)
+  document.getElementById('tbl-hint').textContent =
+    `單邊總口數:Call ${comma(e.total_c)} / Put ${comma(e.total_p)};% 為各500點佔該邊總口數比例;ΔCall/ΔPut = 相對前一交易日(${M.prev_date||'—'})增減。`;
+  document.getElementById('tbl-body').innerHTML = bk.map(b=>{
+    const isSpot = b.lo===spotBucket;
+    return `<tr class="${isSpot?'spotrow':''}">
+      <td class="l num">${comma(b.lo)}–${comma(b.lo+M.bucket)}</td>
+      <td class="num cc">${b.c?comma(b.c):''}</td>
+      <td class="num dcell ${b.dc>0?'cc':(b.dc<0?'dec':'')}">${dfmt(b.dc)}</td>
+      <td class="num cc">${b.c?b.cp+'%':''}</td>
+      <td class="num pp">${b.p?comma(b.p):''}</td>
+      <td class="num dcell ${b.dp>0?'pp':(b.dp<0?'dec':'')}">${dfmt(b.dp)}</td>
+      <td class="num pp">${b.p?b.pp+'%':''}</td>
+    </tr>`;
+  }).join('');
+}
+render(defIdx);
+
+document.getElementById('foot').innerHTML =
+  `<b>資料</b> = 台指選(TXO)各履約價「未沖銷契約數(未平倉)」,一般盤,資料日 ${M.data_date}。<br>`+
+  `<b>支撐</b> = Put 未平倉最大的履約價(下方大戶防守);<b>壓力</b> = Call 未平倉最大的履約價(上方大戶防守)。<br>`+
+  `<b>最大痛點(Max Pain)</b> = 讓買方選擇權總價值最小(賣方最有利)的結算價,常被視為大戶想結算的位置。<br>`+
+  `<b>新倉焦點(ΔOI)</b> = 本日未平倉 − 前一交易日(${M.prev_date||'—'})。增倉最多的履約價,推測是大戶(多為賣方)新增的防守位置:Call 增倉 → 壓力、Put 增倉 → 支撐。方向為「ΔPut 總量 vs ΔCall 總量」的粗估,僅供參考,OI 不分買賣方發起,非絕對。<br>`+
+  `<b>每500點比例</b> = 該價格帶未平倉 ÷ 該邊(Call或Put)總未平倉。重跑 <code>選擇權未平倉分布_抓取.py</code> 更新。更新於 ${M.updated}。`;
+
+// theme + tooltip
+const tb=document.getElementById('theme');
+try{const t=localStorage.getItem('oi-theme'); if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}
+tb.addEventListener('click',()=>{const cur=document.documentElement.getAttribute('data-theme');
+  const dark=cur?cur==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+  const nx=dark?'light':'dark'; document.documentElement.setAttribute('data-theme',nx);
+  try{localStorage.setItem('oi-theme',nx);}catch(e){}});
+const tt=document.getElementById('tt');
+function showTip(el){tt.textContent=el.getAttribute('data-tip');tt.hidden=false;
+  const r=el.getBoundingClientRect(),tw=tt.offsetWidth,th=tt.offsetHeight;
+  let left=Math.max(8,Math.min(r.right-tw,window.innerWidth-tw-8));let top=r.bottom+6;
+  if(top+th>window.innerHeight-8)top=r.top-th-6; tt.style.left=left+'px';tt.style.top=Math.max(8,top)+'px';}
+document.addEventListener('mouseover',e=>{const el=e.target.closest('[data-tip]');if(el)showTip(el);});
+document.addEventListener('mouseout',e=>{if(e.target.closest('[data-tip]'))tt.hidden=true;});
+</script>

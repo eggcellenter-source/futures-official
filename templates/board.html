@@ -1,0 +1,415 @@
+<title>結算週期溢價看板 · 期權都齊全</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#faf8f3; --surface:#ffffff; --stripe:#f5f1e8; --head:#f0ebe0;
+    --ink:#1b1a16; --ink-soft:#69645a; --ink-faint:#9c9583;
+    --line:#e6e0d2; --line-soft:#efe9dd;
+    --link:#2a5da0; --star:#bd8b1f; --trap:#c07016;
+    --pos:#c0392b; --neg:#0f8a4c; --flat:#8a8474;
+    --rest:#8b8577; --rest-bg:#eceadf; --active:#2f8b56; --active-bg:#e3f1e6;
+    --accent:#2a5da0; --accent-bg:rgba(42,93,160,.10);
+    color-scheme:light;
+  }
+  :root:not([data-theme="light"]){ @media (prefers-color-scheme:dark){
+    --bg:#131209; --surface:#1b1910; --stripe:#211e14; --head:#252115;
+    --ink:#f0ede3; --ink-soft:#a69e8c; --ink-faint:#726a5a;
+    --line:#302b20; --line-soft:#28241a;
+    --link:#78ade6; --star:#e0b446; --trap:#df9636;
+    --pos:#ff6a5f; --neg:#3cc879; --flat:#8b8474;
+    --rest:#8b8577; --rest-bg:#242116; --active:#45b571; --active-bg:#182b1e;
+    --accent:#78ade6; --accent-bg:rgba(120,173,230,.13);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#131209; --surface:#1b1910; --stripe:#211e14; --head:#252115;
+    --ink:#f0ede3; --ink-soft:#a69e8c; --ink-faint:#726a5a;
+    --line:#302b20; --line-soft:#28241a;
+    --link:#78ade6; --star:#e0b446; --trap:#df9636;
+    --pos:#ff6a5f; --neg:#3cc879; --flat:#8b8474;
+    --rest:#8b8577; --rest-bg:#242116; --active:#45b571; --active-bg:#182b1e;
+    --accent:#78ade6; --accent-bg:rgba(120,173,230,.13);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Noto Sans TC",system-ui,"Microsoft JhengHei",sans-serif;line-height:1.5;
+    -webkit-font-smoothing:antialiased}
+  .num{font-family:"JetBrains Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:0 60px}
+
+  header.top{border-bottom:1px solid var(--line);background:var(--surface)}
+  .top-in{max-width:1080px;margin:0 auto;padding:16px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .mark-logo{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:20px;letter-spacing:-.5px;color:var(--ink)}
+  .mark-logo b{color:var(--accent)}
+  .tagline{font-size:13px;color:var(--ink-soft);margin-right:auto}
+  .themebtn{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);
+    background:var(--bg);color:var(--ink);cursor:pointer;font-size:14px}
+  .themebtn:hover{border-color:var(--accent)}
+
+  /* status pill */
+  .status{display:flex;align-items:center;gap:11px;margin-top:18px;padding:13px 18px;
+    border-radius:12px;border:1px solid var(--line);font-weight:700;font-size:15px}
+  .status .dot{width:11px;height:11px;border-radius:50%;flex:none}
+  .status.rest{background:var(--rest-bg);color:var(--ink)} .status.rest .dot{background:var(--rest)}
+  .status.active{background:var(--active-bg);color:var(--ink)} .status.active .dot{background:var(--active);
+    box-shadow:0 0 0 4px color-mix(in srgb,var(--active) 22%,transparent)}
+  .status .lead{font-weight:900} .status .detail{font-weight:500;color:var(--ink-soft);font-size:13.5px}
+
+  .meta{margin-top:10px;font-size:12.5px;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:6px 16px}
+  .meta b{color:var(--ink);font-weight:600}
+  .meta .num{font-size:12px}
+
+  h2.sec{font-size:16px;font-weight:800;margin:30px 0 4px;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+  h2.sec .cnt{font-size:12.5px;font-weight:500;color:var(--ink-soft)}
+  .hint{font-size:12px;color:var(--ink-faint);margin:0 0 10px}
+
+  .toolbar{display:flex;gap:10px;align-items:center;margin:14px 0 10px;flex-wrap:wrap}
+  .search{position:relative;flex:1;min-width:190px}
+  .search input{width:100%;padding:9px 12px 9px 34px;border-radius:9px;border:1px solid var(--line);
+    background:var(--surface);color:var(--ink);font-size:13.5px;font-family:inherit}
+  .search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--ink-faint)}
+  .seg{display:inline-flex;background:var(--head);border:1px solid var(--line);border-radius:9px;padding:3px}
+  .seg button{border:none;background:transparent;color:var(--ink-soft);cursor:pointer;font-family:inherit;
+    font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:6px}
+  .seg button.on{background:var(--surface);color:var(--ink)}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:1040px}
+  thead th{position:sticky;top:0;z-index:3;background:var(--head);color:var(--ink-soft);
+    font-size:11.5px;font-weight:700;letter-spacing:.3px;text-align:right;padding:10px 14px;white-space:nowrap;
+    border-bottom:1px solid var(--line)}
+  thead th.l{text-align:left} thead th.c{text-align:center}
+  thead th.sortable{cursor:pointer;user-select:none}
+  thead th.sortable:hover{color:var(--ink)}
+  thead th.act{color:var(--accent);box-shadow:inset 0 -2px 0 var(--accent)}
+  thead th .ar{font-size:9px;margin-left:2px;opacity:.7}
+  tbody td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line-soft)}
+  tbody tr:nth-child(even) td{background:var(--stripe)}
+  tbody tr:hover td{background:var(--accent-bg)}
+  tbody tr:last-child td{border-bottom:none}
+  td.l{text-align:left} td.c{text-align:center}
+  .code{color:var(--link);font-weight:700}
+  .nm{font-weight:500}
+  .mk{font-size:13px;width:22px}
+  .mk.star{color:var(--star)} .mk.trap{color:var(--trap)}
+  .prem{font-weight:700} .prem.p{color:var(--neg)} .prem.n{color:var(--pos)} .prem.z{color:var(--flat)}
+  .rk{color:var(--ink-soft)} .rk.top{color:var(--ink);font-weight:700}
+  .dim{color:var(--ink-faint)}
+  .empty{padding:34px;text-align:center;color:var(--ink-soft);font-size:14px}
+
+  .foot{margin-top:26px;font-size:12px;color:var(--ink-soft);line-height:1.75}
+  .foot code{background:var(--head);padding:1px 6px;border-radius:5px;font-family:"JetBrains Mono",monospace;font-size:11px}
+  .foot b{color:var(--ink)}
+  [data-tip]{cursor:help}
+  th[data-tip]{text-decoration:underline dotted var(--ink-faint);text-underline-offset:3px}
+  .ttpop{position:fixed;max-width:300px;background:var(--ink);color:var(--bg);padding:8px 11px;
+    border-radius:8px;font-size:12px;line-height:1.55;z-index:200;pointer-events:none;
+    box-shadow:0 8px 26px rgba(0,0,0,.28)}
+  @media(max-width:560px){ .tagline{width:100%;margin:4px 0 0} .status{font-size:14px} }
+</style>
+
+<style>
+  .sitenav{display:flex;gap:4px;background:var(--surface);border-bottom:1px solid var(--line);padding:8px 12px;overflow-x:auto}
+  .sitenav a{flex:none;text-decoration:none;color:var(--ink-soft);font-size:13px;font-weight:600;padding:6px 12px;border-radius:8px;white-space:nowrap}
+  .sitenav a:hover{background:var(--stripe);color:var(--ink)}
+  .sitenav a.active{background:var(--accent-bg);color:var(--accent)}
+  :root[data-theme="dark"]{color-scheme:dark}
+  @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}}
+</style>
+<nav class="sitenav">
+  <a href="index.html">🧭 總覽</a>
+  <a href="board.html" class="active">📊 溢價看板</a>
+  <a href="pcr.html">🎯 PCR訊號</a>
+  <a href="oi.html">🧱 未平倉分布</a>
+  <a href="inst.html">🏦 法人OP</a>
+</nav>
+
+<header class="top">
+  <div class="top-in">
+    <span class="mark-logo">結算週期<b>溢價</b>看板</span>
+    <span class="tagline">個股期貨 · 結算週期溢價套利打擊清單</span>
+    <button class="themebtn" id="theme" title="深淺色">◐</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="cycsel" style="display:flex;align-items:center;gap:8px;margin-top:16px;flex-wrap:wrap"></div>
+  <div class="status" id="status"></div>
+  <div class="status" id="strength" style="margin-top:10px"></div>
+  <div class="status" id="sqzstrength" style="margin-top:10px"></div>
+  <div class="meta" id="meta"></div>
+
+  <h2 class="sec">結算套利風險 TOP30 <span class="cnt" id="risk-cnt"></span></h2>
+  <div class="toolbar">
+    <div class="seg" id="risk-toggle">
+      <button data-s="sell" class="on">賣壓（溢價）</button>
+      <button data-s="buy">買盤（折價）</button>
+      <button data-s="squeeze">軋空上漲（折價＋融券增）</button>
+    </div>
+  </div>
+  <p class="hint" id="risk-hint"></p>
+  <div class="card"><div class="scroll"><table>
+    <thead><tr id="risk-head"></tr></thead>
+    <tbody id="risk-body"></tbody>
+  </table></div><div class="empty" id="risk-empty" hidden></div></div>
+
+  <h2 class="sec">全部個股期貨標的 <span class="cnt" id="all-cnt"></span></h2>
+  <div class="toolbar">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input id="q" type="text" placeholder="搜尋股名或代碼…（台積電 / 2330）" autocomplete="off">
+    </div>
+    <div class="seg" id="filter">
+      <button data-f="all" class="on">全部</button>
+      <button data-f="mark">僅溢價前30</button>
+      <button data-f="markd">僅折價前30</button>
+    </div>
+  </div>
+  <div class="card"><div class="scroll"><table>
+    <thead><tr id="all-head"></tr></thead>
+    <tbody id="all-body"></tbody>
+  </table></div><div class="empty" id="all-empty" hidden>找不到符合的標的</div></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+<div id="tt" class="ttpop" hidden></div>
+
+<script>
+const RAW = null;
+const CYCLES = (Array.isArray(RAW) ? RAW.slice() : [RAW])
+  .sort((a,b)=> (a.meta.settle_this < b.meta.settle_this ? 1 : -1));
+let M, ROWS, strikes, buys, squeezes, strength, buyStrength, sqzStrength;
+let curRisk='sell', sortK='risk', sortDir=-1, query='', filt='all';
+
+const p3 = n => (n>0?'+':'') + Number(n).toFixed(3);
+const pcls = n => n>0.0005?'p':(n<-0.0005?'n':'z');
+const comma = n => Number(n).toLocaleString('en-US',{maximumFractionDigits:0});
+const expL = e => e ? e.slice(0,4)+'/'+e.slice(4,6) : '';
+
+// ---- status + 全市場賣壓強度 ----
+function renderStatus(){
+  const st = document.getElementById('status');
+  const rest = M.gate==='rest';
+  st.className = 'status ' + (rest?'rest':'active');
+  st.innerHTML = `<span class="dot"></span>
+    <span class="lead">${rest?'本月休息':'可操作'}</span>
+    <span class="detail">台積電週期溢價 <span class="num">${M.tsmc_prem==null?'—':p3(M.tsmc_prem)+'%'}</span>
+    ${rest?'&lt;':'≥'} ${M.gate_pct}% 門檻</span>`;
+  const sLevel = strength>=1500 ? {bg:'rgba(15,138,76,.16)',col:'var(--neg)',t:'高危'}
+               : strength>=350  ? {bg:'rgba(15,138,76,.09)',col:'var(--neg)',t:'警戒'}
+               :                  {bg:'var(--rest-bg)',col:'var(--ink-soft)',t:'偏低'};
+  const sg = document.getElementById('strength');
+  sg.className='status'; sg.style.marginTop='10px'; sg.style.background=sLevel.bg;
+  sg.setAttribute('data-tip','全市場所有溢價股的「週期溢價×未平倉市值(億)」加總 = 這個月套利賣壓的彈藥總量。'
+    +'2025 全年≤324、2026 皆≥350;>350 警戒、>1500 高危。對照買盤側=折價股的同樣加總。'
+    +'注意:強度只是彈藥,結算日大盤強漲會把賣壓吸收掉,大盤弱/平才會顯現。');
+  sg.innerHTML = `<span class="dot" style="background:${sLevel.col}"></span>
+    <span class="lead" style="color:${sLevel.col}">結算賣壓強度 ${sLevel.t}</span>
+    <span class="detail">全市場溢價側 Σ(週期溢價×未平倉市值) = <span class="num" style="font-weight:700;color:var(--ink)">${strength.toLocaleString()}</span>
+    &nbsp;(門檻 350 警戒 / 1500 高危) · 對照買盤側 ${buyStrength.toLocaleString()}<br>
+    <span style="color:var(--ink-faint)">強度大只是彈藥足;結算日還要看大盤——大盤強漲會把賣壓吸收掉</span></span>`;
+
+  // 軋空(上漲)強度燈:折價+融券增
+  const qLevel = sqzStrength>=8000 ? {bg:'rgba(192,57,43,.16)',col:'var(--pos)',t:'彈藥很滿'}
+               : sqzStrength>=3500 ? {bg:'rgba(192,57,43,.09)',col:'var(--pos)',t:'偏多有戲'}
+               :                     {bg:'var(--rest-bg)',col:'var(--ink-soft)',t:'偏低'};
+  const qg = document.getElementById('sqzstrength');
+  qg.className='status'; qg.style.marginTop='10px'; qg.style.background=qLevel.bg;
+  qg.setAttribute('data-tip','全市場所有(折價且融券增加)股的「|週期折價|×融券增加」加總 = 這個月軋空上漲的彈藥總量。'
+    +'歷史驗證:高軋空強度月結算週平均+1.9%、上漲勝率73%(低強度月−1.1%、40%)。>3,500 偏多、>8,000 很滿。'
+    +'注意:一樣是機率加分項,結算週大盤不能太弱才軋得動。');
+  qg.innerHTML = `<span class="dot" style="background:${qLevel.col}"></span>
+    <span class="lead" style="color:${qLevel.col}">結算軋空(上漲)強度 ${qLevel.t}</span>
+    <span class="detail">全市場折價側 Σ(|週期折價|×融券增加) = <span class="num" style="font-weight:700;color:var(--ink)">${sqzStrength.toLocaleString()}</span>
+    &nbsp;(門檻 3,500 偏多 / 8,000 很滿)<br>
+    <span style="color:var(--ink-faint)">期貨折價+融券大增疊加→結算/回補易軋上漲;歷史高強度月結算週勝率約7成</span></span>`;
+}
+
+function renderMeta(){
+  document.getElementById('meta').innerHTML =
+  `<span>資料日 <b class="num">${M.data_date}</b></span>
+   <span>週期 <b class="num">${M.cycle_start}</b> ~ 本次結算 <b class="num">${M.settle_this}</b></span>
+   <span>近月 <b class="num">${M.near_month}</b></span>
+   <span>台指期週期溢價 <b class="num">${M.txf_prem==null?'—':p3(M.txf_prem)+'%'}</b> · 最大spike <b class="num">${M.txf_spike==null?'—':p3(M.txf_spike)+'%'}</b></span>
+   <span>更新 <b class="num">${M.updated}</b> (台北)</span>`;
+}
+
+// ---- columns ----
+const cols = [
+  {k:'mark', t:'', l:true, cls:'c', w:'mk', tip:'★=賣壓打擊(溢價前30 且 倉位前30);⚠=溢價前30 但倉位不足(看得到吃不到)'},
+  {k:'stock', t:'代碼', l:true, sort:true},
+  {k:'name', t:'名稱', l:true},
+  {k:'cyc_prem', t:'週期溢價', sort:true, def:-1, tip:'本結算週期每日 (股期近月結算價 − 現貨收盤) ÷ 現貨 % 的平均。正=溢價、負=折價。用結算價自動反映除息'},
+  {k:'oi', t:'當月未平倉(口)', sort:true, def:-1, tip:'近月(當月)主約未沖銷口數。越大越難轉倉、越可能帶著部位進結算'},
+  {k:'mv_m', t:'未平倉市值(百萬)', sort:true, def:-1, tip:'全部契約(大型+小型)近月未沖銷 × 乘數 × 現貨(百萬元),帶方向:正=溢價→賣壓、負=折價→買盤'},
+  {k:'risk', t:'賣壓風險分數', sort:true, def:-1, tip:'週期溢價 × 未平倉市值(億)。正=結算最可能被套利平倉賣下來、負=被買上去;絕對值越大風險越高'},
+  {k:'short', t:'融券餘額(張)', sort:true, def:-1, tip:'本週期末融券餘額(張)。融券=現貨空單,結算/回補時要買回'},
+  {k:'short_chg', t:'融券增減(張)', sort:true, def:-1, tip:'本週期融券餘額變化(週期末 − 週期初)。正=空單增加、空方彈藥變多'},
+  {k:'squeeze', t:'軋空分數', sort:true, def:-1, tip:'|週期折價| × 融券增加。期貨折價(空)+ 融券大增(空)兩邊疊加 → 回補易軋上漲、抓上漲的肉'},
+  {k:'rank_prem', t:'溢價排名', sort:true, def:1, tip:'依週期溢價由高到低的排名(1=最貴)'},
+  {k:'rank_pos', t:'倉位排名', sort:true, def:1, tip:'依帶號未平倉市值(賣壓側)由大到小的排名(1=賣壓部位最大)'},
+  {k:'days', t:'資料天數', sort:true, def:-1, tip:'本週期有資料的交易日數。太少=新上市或週期剛開始,週期溢價不準'},
+];
+function headHTML(withSort){
+  return cols.map(c=>{
+    const cl=[c.l?'l':'', c.cls==='c'?'c':'', (withSort&&c.sort)?'sortable':''].filter(Boolean).join(' ');
+    const tip=c.tip?` data-tip="${c.tip}"`:'';
+    return `<th class="${cl}" data-k="${c.k}"${tip}>${c.t}<span class="ar"></span></th>`;
+  }).join('');
+}
+function markCell(m){ return m==='strike'?'<span class="mk star" data-tip="賣壓打擊目標:溢價前30 且 倉位前30(又貴又有量)">★</span>':(m==='trap'?'<span class="mk trap" data-tip="陷阱:溢價前30 但倉位不足(倉位排名>30),結算能倒出的量有限,別被高溢價騙進去">⚠</span>':''); }
+function rowHTML(r){
+  return `<tr>
+    <td class="c mk">${markCell(r.mark)}</td>
+    <td class="l"><span class="code num">${r.stock}</span></td>
+    <td class="l nm">${r.name}</td>
+    <td class="prem num ${pcls(r.cyc_prem)}">${p3(r.cyc_prem)}%</td>
+    <td class="num">${comma(r.oi)}</td>
+    <td class="prem num ${pcls(r.mv_m)}">${comma(r.mv_m)}</td>
+    <td class="prem num ${pcls(r.risk)}" style="font-weight:800">${r.risk>0?'+':''}${comma(r.risk)}</td>
+    <td class="num">${comma(r.short||0)}</td>
+    <td class="prem num ${pcls(r.short_chg||0)}">${(r.short_chg||0)>0?'+':''}${comma(r.short_chg||0)}</td>
+    <td class="num ${(r.squeeze||0)>0?'neg':''}" style="font-weight:700">${(r.squeeze||0)>0?comma(r.squeeze):''}</td>
+    <td class="num rk ${r.rank_prem<=M.strike_top?'top':''}">${r.rank_prem}</td>
+    <td class="num rk ${r.rank_pos<=M.strike_top?'top':''}">${r.rank_pos}</td>
+    <td class="num ${r.days<M.full_days?'dim':''}">${r.days}</td>
+  </tr>`;
+}
+
+// ---- 結算套利風險 TOP30:賣壓(溢價) ⇄ 買盤(折價) 可切換 ----
+const riskHead=document.getElementById('risk-head');
+function renderRisk(mode){
+  curRisk=mode;
+  const rows = mode==='sell' ? strikes : mode==='buy' ? buys : squeezes;
+  const cnt = mode==='sell' ? `(前 ${strikes.length} 檔,全市場賣壓強度合計 ${strength.toLocaleString()})`
+            : mode==='buy'  ? `(前 ${buys.length} 檔,全市場買盤強度合計 ${buyStrength.toLocaleString()})`
+            :                 `(前 ${squeezes.length} 檔,折價 + 融券增加的軋空候選)`;
+  const hint = mode==='sell' ? `賣壓風險分數 = 週期溢價 × 未平倉市值,由大到小 —— 溢價越大、部位越大,結算收斂時最可能被套利平倉「<b class="prem p">賣下來</b>」的個股。`
+            : mode==='buy'   ? `買盤風險分數 = 週期溢價 × 未平倉市值(負值),由最負到最不負 —— 折價越深、部位越大,結算收斂時最可能被套利平倉「<b class="prem n">買上去</b>」的個股。`
+            :                  `軋空分數 = |週期折價| × 融券增加,由大到小 —— <b>期貨折價(空)+ 融券大增(空)</b>兩邊空方彈藥疊加,結算/回補時最有機會「<b class="prem n">軋上去</b>」吃上漲的肉。`;
+  riskHead.innerHTML=headHTML(false);
+  document.getElementById('risk-cnt').textContent=cnt;
+  document.getElementById('risk-hint').innerHTML=hint;
+  document.getElementById('risk-empty').hidden=rows.length>0;
+  document.getElementById('risk-empty').textContent=mode==='sell'?'本週期無溢價標的':mode==='buy'?'本週期無折價標的':'本週期無(折價+融券增加)標的';
+  document.getElementById('risk-body').innerHTML=rows.map(rowHTML).join('');
+}
+document.getElementById('risk-toggle').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#risk-toggle button').forEach(x=>x.classList.toggle('on',x===b));
+  renderRisk(b.dataset.s);
+});
+
+// ---- all table (sortable + search + filter) ----
+const allHead = document.getElementById('all-head');
+function view(){
+  let v = ROWS.slice();
+  if(filt==='mark') v = v.filter(r=>r.rank_prem<=M.strike_top);
+  else if(filt==='markd') v = v.filter(r=>r.rank_prem > M.count - M.strike_top);
+  if(query){ const q=query.trim().toLowerCase();
+    v = v.filter(r=> r.name.toLowerCase().includes(q) || String(r.stock).includes(q)); }
+  v.sort((a,b)=>{ const d=(a[sortK]>b[sortK]?1:a[sortK]<b[sortK]?-1:0); return d*sortDir; });
+  return v;
+}
+function renderAll(){
+  const v=view();
+  document.getElementById('all-cnt').textContent = `(${ROWS.length} 檔,點欄位標題排序)`;
+  document.getElementById('all-empty').hidden = v.length>0;
+  document.getElementById('all-body').innerHTML = v.map(rowHTML).join('');
+  allHead.querySelectorAll('th').forEach(th=>{
+    const c=cols.find(x=>x.k===th.dataset.k); const active=th.dataset.k===sortK;
+    th.classList.toggle('act', active);
+    th.querySelector('.ar').textContent = active?(sortDir<0?'▼':'▲'):(c&&c.sort?'⇅':'');
+  });
+}
+allHead.addEventListener('click', e=>{
+  const th=e.target.closest('th'); if(!th)return;
+  const c=cols.find(x=>x.k===th.dataset.k); if(!c||!c.sort)return;
+  if(sortK===c.k) sortDir=-sortDir; else { sortK=c.k; sortDir=c.def||-1; }
+  renderAll();
+});
+document.getElementById('q').addEventListener('input', e=>{query=e.target.value; renderAll();});
+document.getElementById('filter').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b)return; filt=b.dataset.f;
+  document.querySelectorAll('#filter button').forEach(x=>x.classList.toggle('on',x===b)); renderAll();
+});
+
+// ---- theme ----
+const tb=document.getElementById('theme');
+try{const t=localStorage.getItem('cyc-theme'); if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}
+tb.addEventListener('click',()=>{
+  const cur=document.documentElement.getAttribute('data-theme');
+  const dark = cur? cur==='dark' : matchMedia('(prefers-color-scheme:dark)').matches;
+  const nx=dark?'light':'dark'; document.documentElement.setAttribute('data-theme',nx);
+  try{localStorage.setItem('cyc-theme',nx);}catch(e){}
+});
+
+// ---- 自訂 tooltip:靠右對齊往左展開,超出畫面自動夾回 ----
+const tt=document.getElementById('tt');
+function showTip(el){
+  tt.textContent=el.getAttribute('data-tip'); tt.hidden=false;
+  const r=el.getBoundingClientRect(), tw=tt.offsetWidth, th=tt.offsetHeight;
+  let left=r.right-tw;                       // 右緣對齊 -> 往左展開
+  left=Math.max(8, Math.min(left, window.innerWidth-tw-8));
+  let top=r.bottom+6;
+  if(top+th>window.innerHeight-8) top=r.top-th-6;
+  tt.style.left=left+'px'; tt.style.top=Math.max(8,top)+'px';
+}
+document.addEventListener('mouseover', e=>{ const el=e.target.closest('[data-tip]'); if(el) showTip(el); });
+document.addEventListener('mouseout', e=>{ if(e.target.closest('[data-tip]')) tt.hidden=true; });
+document.addEventListener('click', e=>{ const el=e.target.closest('[data-tip]'); if(el){ if(tt.hidden) showTip(el); else tt.hidden=true; } });
+
+function renderFoot(){
+  document.getElementById('foot').innerHTML =
+  `<b>週期溢價</b> = 本結算週期(上次結算日隔天～本次結算日前)每日 (股期近月<b>結算價</b> − 現貨收盤) ÷ 現貨收盤 % 的平均。`+
+  `採結算價可自動反映除息(除息前貼水會被還原),為套利真實價差。<br>`+
+  `<b>當月未平倉(口)</b> = 近月(即將結算月)主約未沖銷口數。當月部位越大、越難全數轉倉次月,越可能<b>帶著部位進結算</b>被迫平倉 → 現貨賣壓/買盤來源。<br>`+
+  `<b>未平倉市值</b> = 全部契約(大型+小型)近月未沖銷 × 乘數 × 現貨(百萬元),<b>帶方向</b>:`+
+  `<span class="prem p" style="font-weight:700">正=溢價→現貨賣壓</span>、<span class="prem n" style="font-weight:700">負=折價→現貨買盤</span>;倉位排名依帶號市值由大到小。<br>`+
+  `<b>賣壓風險分數</b> = 週期溢價 × 未平倉市值(億)。正=結算最可能被套利平倉「賣下來」、負=買盤;數字越大風險越高。<br>`+
+  `<b>全市場賣壓強度</b> = 所有溢價股賣壓風險分數加總。歷史經驗:2025 全年 ≤324,2026 皆 400+;>350 警戒、>1500 高危。<b>但強度只是彈藥</b>——結算日大盤強漲會把賣壓吸收(如 2026-07 強度高卻大盤大漲、無賣壓),大盤弱/平才會顯現。<br>`+
+  `<b>台指期週期溢價/spike</b> = 指數層級套利彈藥。台積電溢價高 + 台指期 spike 高(如 2026 五、六月 spike >1.4%)= 彈藥最滿的月份。<br>`+
+  `<b>注意:台積電</b>未平倉多為長期持有者、結算會轉倉不平倉,故其賣壓風險分數(部位大)偏高估;它更適合當「權值/大盤方向」指標而非賣壓 candidate。<br>`+
+  `<b>融券增減 / 軋空分數</b> = 融券(現貨空單)本週期變化;軋空分數 = |週期折價| × 融券增加。期貨折價(空)+ 融券大增(空)兩邊疊加 → 結算/回補時容易<b>軋空上漲</b>,用「軋空上漲」切換頁看候選。<br>`+
+  `<b>★</b> = 同時進溢價前${M.strike_top}與倉位前${M.strike_top};<b>休息燈號</b> = 台積電週期溢價 &lt; ${M.gate_pct}% 視為溢價過薄。<br>`+
+  `資料來源:期交所股期每日結算價與未平倉、證交所／櫃買個股收盤。重跑 <code>股期折溢價_抓取.py</code> 更新後再發佈即為最新。`;
+}
+
+// ---- 載入某一結算週期 ----
+function loadCycle(idx){
+  const D=CYCLES[idx]; M=D.meta; ROWS=D.rows;
+  ROWS.forEach(r=>{
+  });
+  strength    = Math.round(ROWS.reduce((a,r)=> a + (r.risk>0? r.risk:0), 0));
+  buyStrength = Math.round(ROWS.reduce((a,r)=> a + (r.risk<0?-r.risk:0), 0));
+  strikes  = ROWS.filter(r=>r.risk>0).slice().sort((a,b)=>b.risk-a.risk).slice(0,30);
+  buys     = ROWS.filter(r=>r.risk<0).slice().sort((a,b)=>a.risk-b.risk).slice(0,30);
+  squeezes = ROWS.filter(r=>r.squeeze>0).slice().sort((a,b)=>b.squeeze-a.squeeze).slice(0,30);
+  sqzStrength = Math.round(ROWS.reduce((a,r)=> a + (r.squeeze||0), 0));
+  renderStatus(); renderMeta();
+  allHead.innerHTML = headHTML(true);
+  renderRisk(curRisk); renderAll(); renderFoot();
+}
+
+// ---- 結算月下拉 ----
+(function(){
+  const cs=document.getElementById('cycsel');
+  cs.innerHTML='<span style="font-size:13px;color:var(--ink-soft)">結算月</span>';
+  const sel=document.createElement('select');
+  sel.style.cssText='padding:7px 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer';
+  CYCLES.forEach((c,i)=>{ const o=document.createElement('option'); o.value=i;
+    o.textContent=`${c.meta.settle_this} 結算  ·  近月 ${c.meta.near_month}`; sel.appendChild(o); });
+  cs.appendChild(sel);
+  const n=document.createElement('span');
+  n.style.cssText='font-size:12px;color:var(--ink-faint)';
+  n.textContent = CYCLES.length>1 ? `共 ${CYCLES.length} 個結算月` : '(目前已有 1 個結算週期，後續自動累積)';
+  cs.appendChild(n);
+  sel.addEventListener('change',()=>loadCycle(+sel.value));
+})();
+
+loadCycle(0);
+</script>

@@ -1,0 +1,14 @@
+.platform-status{max-width:1080px;margin:0 auto;padding:7px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--ink-soft,#69645a);font-size:11px;border-bottom:1px solid var(--line,#e6e0d2)}
+.platform-status>span{margin-right:auto}.platform-status a,.platform-footer a{color:var(--accent,#2a5da0)}
+.platform-status button,.toolbar>button,.manage button,.manage .button{font:inherit;cursor:pointer;padding:5px 10px;border:1px solid var(--line,#e6e0d2);border-radius:6px;background:var(--surface,#fff);color:var(--ink,#1b1a16)}
+.platform-status button:hover,.toolbar>button:hover{border-color:var(--accent)}
+.platform-footer{max-width:1080px;margin:16px auto;padding:20px 16px;font-size:11px;color:var(--ink-soft,#69645a);border-top:1px solid var(--line,#e6e0d2)}
+:focus-visible{outline:2px solid var(--accent,#2a5da0);outline-offset:3px}
+.manage{--bg:#faf8f3;--surface:#fff;--ink:#1b1a16;--ink-soft:#69645a;--line:#e6e0d2;--accent:#2a5da0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;margin:0;line-height:1.7}
+.manage main,.manage nav{max-width:1000px;margin:0 auto;padding:24px}.manage nav{display:flex;gap:20px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-block:14px}
+.manage h1{font-size:26px;margin:5px 0}.manage h2{font-size:17px}.manage p{color:var(--ink-soft)}.manage a{color:var(--accent)}
+.manage .panel{padding:22px;background:var(--surface);border:1px solid var(--line);border-radius:12px;margin:20px 0}
+.manage .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.manage .primary{background:var(--accent);color:white;border-color:var(--accent)}
+.manage table{width:100%;border-collapse:collapse;font-size:13px}.manage th,.manage td{padding:12px 8px;border-bottom:1px solid var(--line);text-align:left}
+.manage .table-scroll{overflow:auto}.manage #message{color:var(--accent);font-size:14px;min-height:26px}.manage small{color:var(--ink-soft)}
+@media(max-width:600px){.manage main{padding:16px}.manage .panel{padding:16px}.platform-status{gap:8px}.platform-status>span{flex-basis:100%}}
